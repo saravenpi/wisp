@@ -71,9 +71,9 @@ if [ "$has_active_session" = true ]; then
 else
     CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     tmux display-menu -x C -y C -T " Wisp " \
-        "Start 25min Session" 1 "display-popup -x C -y C -w 50 -h 5 -E '$CURRENT_DIR/wisp-start-with-name.sh 25'" \
-        "Start 45min Session" 2 "display-popup -x C -y C -w 50 -h 5 -E '$CURRENT_DIR/wisp-start-with-name.sh 45'" \
-        "Start Custom Session" s "command-prompt -p 'Duration (minutes):' 'display-popup -x C -y C -w 50 -h 5 -E \"$CURRENT_DIR/wisp-start-with-name.sh %1\"'" \
+        "Start 25min Session" 1 "display-popup -x C -y C -w 50 -h 3 -E '$CURRENT_DIR/wisp-start-with-name.sh 25'" \
+        "Start 45min Session" 2 "display-popup -x C -y C -w 50 -h 3 -E '$CURRENT_DIR/wisp-start-with-name.sh 45'" \
+        "Start Custom Session" s "command-prompt -p 'Duration (minutes):' 'display-popup -x C -y C -w 50 -h 3 -E \"$CURRENT_DIR/wisp-start-with-name.sh %1\"'" \
         "" \
         "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '$WISP_CMD history'" \
         "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '$WISP_CMD stats'"

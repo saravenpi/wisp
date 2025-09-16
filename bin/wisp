@@ -361,13 +361,12 @@ show_stats() {
 }
 
 get_session_name() {
-    local prompt_msg="${1:-Session name (optional):}"
     local session_name=""
 
     if command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
-        session_name=$(gum input --placeholder "$prompt_msg" --width 40 --show-help=false 2>/dev/null || echo "")
+        session_name=$(gum input --placeholder "Session name (press Enter to skip)" --width 40 --show-help=false 2>/dev/null || echo "")
     else
-        read -p "$prompt_msg " session_name
+        read -p "Session name (press Enter to skip): " session_name
     fi
 
     echo "$session_name"
@@ -394,7 +393,7 @@ main() {
             if [ -n "$1" ]; then
                 session_name="$*"
             else
-                session_name=$(get_session_name "Session name (press Enter to skip):")
+                session_name=$(get_session_name)
             fi
 
             log_session_start "work" "$duration" "$session_name"
@@ -432,7 +431,7 @@ main() {
                 if [ -n "$1" ]; then
                     session_name="$*"
                 else
-                    session_name=$(get_session_name "Session name (press Enter to skip):")
+                    session_name=$(get_session_name)
                 fi
 
                 log_session_start "work" "$duration" "$session_name"

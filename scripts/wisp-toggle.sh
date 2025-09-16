@@ -18,7 +18,7 @@ if [ -f "$WORK_LOG" ] && (grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null 
 else
     if [ -n "$TMUX" ]; then
         CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-        tmux display-popup -x C -y C -w 50 -h 5 -E "$CURRENT_DIR/wisp-start-with-name.sh 25"
+        tmux display-popup -x C -y C -w 50 -h 3 -E "$CURRENT_DIR/wisp-start-with-name.sh 25"
     else
         $WISP_CMD toggle
     fi

@@ -17,6 +17,7 @@ get_timestamp() { date +%s; }
 log_session_start() {
     local session_type="${1:-work}"
     local duration="${2:-$DEFAULT_DURATION}"
+    local session_name="${3:-}"
     local date=$(get_date)
     local time=$(get_time)
     local timestamp=$(get_timestamp)
@@ -26,6 +27,9 @@ log_session_start() {
     echo "    start_timestamp: $timestamp" >> "$WORK_LOG"
     echo "    type: $session_type" >> "$WORK_LOG"
     echo "    planned_minutes: $duration" >> "$WORK_LOG"
+    if [ -n "$session_name" ]; then
+        echo "    name: $session_name" >> "$WORK_LOG"
+    fi
     echo "    status: in_progress" >> "$WORK_LOG"
     echo "" >> "$WORK_LOG"
 
@@ -101,6 +105,39 @@ log_session_resume() {
     fi
 }
 
+name_active_session() {
+    local session_name="$1"
+
+    if [ ! -f "$WORK_LOG" ]; then
+        echo "No work log found."
+        return 1
+    fi
+
+    if ! (grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null || grep -q "status: paused" "$WORK_LOG" 2>/dev/null); then
+        echo "No active session to name."
+        return 1
+    fi
+
+    if [ -z "$session_name" ]; then
+        echo "Please provide a session name."
+        return 1
+    fi
+
+    sed -i.bak '/name:/d' "$WORK_LOG"
+
+    awk -v name="$session_name" '
+        /status: (in_progress|paused)/ {
+            print $0
+            print "    name: " name
+            next
+        }
+        { print }
+    ' "$WORK_LOG.bak" > "$WORK_LOG"
+
+    rm -f "$WORK_LOG.bak" 2>/dev/null
+    echo "Session named: $session_name"
+}
+
 calculate_session_duration() {
     local start_ts="$1"
     local end_ts="$2"
@@ -122,13 +159,11 @@ calculate_daily_total() {
 
     while IFS= read -r line; do
         if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*date:[[:space:]]*(.+) ]]; then
-            # Process the previous session if it was completed
             if [ "$in_session" = true ] && [ "$session_status" = "completed" ] && [ -n "$start_ts" ] && [ -n "$end_ts" ]; then
                 local duration=$(calculate_session_duration "$start_ts" "$end_ts")
                 total_seconds=$((total_seconds + duration))
             fi
 
-            # Start new session
             local session_date="${BASH_REMATCH[1]}"
             if [ "$session_date" = "$target_date" ]; then
                 in_session=true
@@ -149,7 +184,6 @@ calculate_daily_total() {
         fi
     done < "$WORK_LOG"
 
-    # Process the last session if it was completed
     if [ "$in_session" = true ] && [ "$session_status" = "completed" ] && [ -n "$start_ts" ] && [ -n "$end_ts" ]; then
         local duration=$(calculate_session_duration "$start_ts" "$end_ts")
         total_seconds=$((total_seconds + duration))
@@ -182,21 +216,17 @@ show_grouped_log() {
     local day_sessions=()
     local all_dates=()
 
-    # First pass: collect all unique dates
     while IFS= read -r line; do
         if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*date:[[:space:]]*(.+) ]]; then
             local date="${BASH_REMATCH[1]}"
-            # Add to array if not already present
             if [[ ! " ${all_dates[@]} " =~ " ${date} " ]]; then
                 all_dates+=("$date")
             fi
         fi
     done < "$WORK_LOG"
 
-    # Sort dates (newest first)
     IFS=$'\n' all_dates=($(sort -r <<< "${all_dates[*]}"))
 
-    # Process each date
     for date in "${all_dates[@]}"; do
         echo "📅 $date"
 
@@ -209,19 +239,16 @@ show_grouped_log() {
         local sessions_for_day=0
         local completed_for_day=0
 
-        # Read through file again for this specific date
         while IFS= read -r line; do
             if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*date:[[:space:]]*(.+) ]]; then
-                # Process previous session if we were in one
                 if [ "$in_session" = true ]; then
                     sessions_for_day=$((sessions_for_day + 1))
                     if [ "$session_status" = "completed" ]; then
                         completed_for_day=$((completed_for_day + 1))
                     fi
-                    display_session "$start_time" "$end_time" "$session_type" "$planned_minutes" "$session_status"
+                    display_session "$start_time" "$end_time" "$session_type" "$planned_minutes" "$session_status" "$session_name"
                 fi
 
-                # Check if this is our target date
                 local session_date="${BASH_REMATCH[1]}"
                 if [ "$session_date" = "$date" ]; then
                     in_session=true
@@ -230,6 +257,7 @@ show_grouped_log() {
                     session_type=""
                     planned_minutes=""
                     session_status=""
+                    session_name=""
                 else
                     in_session=false
                 fi
@@ -242,6 +270,8 @@ show_grouped_log() {
                     session_type="${BASH_REMATCH[1]}"
                 elif [[ "$line" =~ ^[[:space:]]*planned_minutes:[[:space:]]*([0-9]+) ]]; then
                     planned_minutes="${BASH_REMATCH[1]}"
+                elif [[ "$line" =~ ^[[:space:]]*name:[[:space:]]*(.+) ]]; then
+                    session_name="${BASH_REMATCH[1]}"
                 elif [[ "$line" =~ ^[[:space:]]*status:[[:space:]]*(.+) ]]; then
                     session_status="${BASH_REMATCH[1]}"
                 fi
@@ -271,6 +301,7 @@ display_session() {
     local session_type="$3"
     local planned_minutes="$4"
     local session_status="$5"
+    local session_name="$6"
 
     local status_icon="❓"
     case "$session_status" in
@@ -285,7 +316,12 @@ display_session() {
         time_range="$start_time → $end_time"
     fi
 
-    echo "   $status_icon $time_range (${planned_minutes}min ${session_type})"
+    local session_display="${planned_minutes}min ${session_type}"
+    if [ -n "$session_name" ]; then
+        session_display="$session_display - $session_name"
+    fi
+
+    echo "   $status_icon $time_range ($session_display)"
 }
 
 show_stats() {
@@ -328,6 +364,21 @@ show_stats() {
     fi
 }
 
+get_session_name() {
+    local prompt_msg="${1:-Session name (optional):}"
+    local session_name=""
+
+    if command -v gum >/dev/null 2>&1; then
+        session_name=$(gum input --placeholder "$prompt_msg" --width 40 --show-help=false 2>/dev/null || echo "")
+    elif [ -n "$TMUX" ]; then
+        read -p "$prompt_msg " session_name
+    else
+        read -p "$prompt_msg " session_name
+    fi
+
+    echo "$session_name"
+}
+
 main() {
     local cmd="$1"
     shift
@@ -342,8 +393,22 @@ main() {
             local duration="$DEFAULT_DURATION"
             if [ -n "$1" ] && [[ "$1" =~ ^[0-9]+$ ]]; then
                 duration="$1"
+                shift
             fi
-            log_session_start "work" "$duration"
+
+            local session_name=""
+            if [ -n "$1" ]; then
+                session_name="$*"
+            else
+                session_name=$(get_session_name "Session name (press Enter to skip):")
+            fi
+
+            log_session_start "work" "$duration" "$session_name"
+            if [ -n "$session_name" ]; then
+                echo "Started ${duration}min session: $session_name"
+            else
+                echo "Started ${duration}min session"
+            fi
             ;;
         "stop")
             log_session_complete
@@ -354,6 +419,9 @@ main() {
         "resume")
             log_session_resume
             ;;
+        "name")
+            name_active_session "$1"
+            ;;
         "toggle")
             if [ -f "$WORK_LOG" ] && grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null; then
                 log_session_pause
@@ -363,8 +431,22 @@ main() {
                 local duration="$DEFAULT_DURATION"
                 if [ -n "$1" ] && [[ "$1" =~ ^[0-9]+$ ]]; then
                     duration="$1"
+                    shift
                 fi
-                log_session_start "work" "$duration"
+
+                local session_name=""
+                if [ -n "$1" ]; then
+                    session_name="$*"
+                else
+                    session_name=$(get_session_name "Session name (press Enter to skip):")
+                fi
+
+                log_session_start "work" "$duration" "$session_name"
+                if [ -n "$session_name" ]; then
+                    echo "Started ${duration}min session: $session_name"
+                else
+                    echo "Started ${duration}min session"
+                fi
             fi
             ;;
         "stats"|"status"|"summary")
@@ -396,20 +478,23 @@ main() {
             echo "Usage: $0 [command] [duration]"
             echo
             echo "Commands:"
-            echo "  start [mins] Start new work session (default: 25 min)"
-            echo "  toggle       Toggle session (start/pause/resume)"
-            echo "  pause        Pause current session"
-            echo "  resume       Resume paused session"
-            echo "  stop         Stop current session"
-            echo "  stats        Show work statistics"
-            echo "  today        Show today's sessions"
-            echo "  log          Show full work history"
-            echo "  help         Show this help"
+            echo "  start [mins] [name]  Start new work session (default: 25 min)"
+            echo "  toggle [mins] [name] Toggle session (start/pause/resume)"
+            echo "  pause                Pause current session"
+            echo "  resume               Resume paused session"
+            echo "  stop                 Stop current session"
+            echo "  name <name>          Name the current active session"
+            echo "  stats                Show work statistics"
+            echo "  today                Show today's sessions"
+            echo "  log                  Show full work history"
+            echo "  help                 Show this help"
             echo
             echo "Examples:"
-            echo "  wisp start       # Start 25-minute session"
-            echo "  wisp start 45    # Start 45-minute session"
-            echo "  wisp stop        # Stop current session"
+            echo "  wisp start                    # Start 25-minute session (prompts for name)"
+            echo "  wisp start 45                 # Start 45-minute session (prompts for name)"
+            echo "  wisp start 25 \"Project Work\"  # Start named session directly"
+            echo "  wisp name \"Project X\"         # Name current session"
+            echo "  wisp stop                     # Stop current session"
             echo
             echo "Work sessions are logged to ~/.wisp.yml"
             echo

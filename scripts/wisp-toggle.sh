@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
 
-if command -v wisp >/dev/null 2>&1; then
-    wisp toggle
-elif [ -x "$HOME/.local/bin/wisp" ]; then
-    "$HOME/.local/bin/wisp" toggle
+get_wisp_cmd() {
+    if command -v wisp >/dev/null 2>&1; then
+        echo "wisp"
+    elif [ -x "$HOME/.local/bin/wisp" ]; then
+        echo "$HOME/.local/bin/wisp"
+    else
+        echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../bin/wisp"
+    fi
+}
+
+WISP_CMD=$(get_wisp_cmd)
+WORK_LOG="$HOME/.wisp.yml"
+
+if [ -f "$WORK_LOG" ] && (grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null || grep -q "status: paused" "$WORK_LOG" 2>/dev/null); then
+    $WISP_CMD toggle
 else
-    CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    "$CURRENT_DIR/../bin/wisp" toggle
+    if [ -n "$TMUX" ]; then
+        CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+        tmux display-popup -x C -y C -w 50 -h 5 -E "$CURRENT_DIR/wisp-start-with-name.sh 25"
+    else
+        $WISP_CMD toggle
+    fi
 fi

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 WORK_LOG="$HOME/.wisp.yml"
@@ -11,9 +10,32 @@ fi
 has_active_session=false
 session_status=""
 
+get_wisp_cmd() {
+    if command -v wisp >/dev/null 2>&1; then
+        echo "wisp"
+    elif [ -x "$HOME/.local/bin/wisp" ]; then
+        echo "$HOME/.local/bin/wisp"
+    else
+        echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../bin/wisp"
+    fi
+}
+
+get_wisp_format_cmd() {
+    if command -v wisp-format >/dev/null 2>&1; then
+        echo "wisp-format"
+    elif [ -x "$HOME/.local/bin/wisp-format" ]; then
+        echo "$HOME/.local/bin/wisp-format"
+    else
+        echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/wisp-format.sh"
+    fi
+}
+
+WISP_CMD=$(get_wisp_cmd)
+WISP_FORMAT_CMD=$(get_wisp_format_cmd)
+
 if [ -f "$WORK_LOG" ]; then
     if grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null; then
-        timer_status=$(~/mybins/wisp-format default)
+        timer_status=$($WISP_FORMAT_CMD default)
         if [[ "$timer_status" == *"Inactive"* ]]; then
             has_active_session=false
         else
@@ -29,27 +51,30 @@ fi
 if [ "$has_active_session" = true ]; then
     if [ "$session_status" = "running" ]; then
         tmux display-menu -x C -y C -T " Wisp " \
-            "Pause Session" p "run-shell '~/mybins/wisp pause'" \
+            "Name Session" n "command-prompt -p 'Session name:' 'run-shell \"$WISP_CMD name %1\"'" \
+            "Pause Session" p "run-shell '$WISP_CMD pause'" \
             "" \
-            "Stop Session" s "run-shell '~/mybins/wisp stop'" \
+            "Stop Session" s "run-shell '$WISP_CMD stop'" \
             "" \
-            "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '~/mybins/wisp-history-viewer.sh'" \
-            "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '~/mybins/wisp-stats-viewer.sh'"
+            "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '$WISP_CMD history'" \
+            "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '$WISP_CMD stats'"
     elif [ "$session_status" = "paused" ]; then
         tmux display-menu -x C -y C -T " Wisp " \
-            "Resume Session" r "run-shell '~/mybins/wisp resume'" \
+            "Name Session" n "command-prompt -p 'Session name:' 'run-shell \"$WISP_CMD name %1\"'" \
+            "Resume Session" r "run-shell '$WISP_CMD resume'" \
             "" \
-            "Stop Session" s "run-shell '~/mybins/wisp stop'" \
+            "Stop Session" s "run-shell '$WISP_CMD stop'" \
             "" \
-            "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '~/mybins/wisp-history-viewer.sh'" \
-            "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '~/mybins/wisp-stats-viewer.sh'"
+            "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '$WISP_CMD history'" \
+            "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '$WISP_CMD stats'"
     fi
 else
+    CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     tmux display-menu -x C -y C -T " Wisp " \
-        "Start 25min Session" 1 "run-shell '~/mybins/wisp start 25'" \
-        "Start 45min Session" 2 "run-shell '~/mybins/wisp start 45'" \
-        "Start Custom Session" s "command-prompt -p 'Duration (minutes):' 'run-shell \"~/mybins/wisp start %1\"'" \
+        "Start 25min Session" 1 "display-popup -x C -y C -w 50 -h 5 -E '$CURRENT_DIR/wisp-start-with-name.sh 25'" \
+        "Start 45min Session" 2 "display-popup -x C -y C -w 50 -h 5 -E '$CURRENT_DIR/wisp-start-with-name.sh 45'" \
+        "Start Custom Session" s "command-prompt -p 'Duration (minutes):' 'display-popup -x C -y C -w 50 -h 5 -E \"$CURRENT_DIR/wisp-start-with-name.sh %1\"'" \
         "" \
-        "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '~/mybins/wisp-history-viewer.sh'" \
-        "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '~/mybins/wisp-stats-viewer.sh'"
+        "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '$WISP_CMD history'" \
+        "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '$WISP_CMD stats'"
 fi

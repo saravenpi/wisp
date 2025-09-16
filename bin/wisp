@@ -391,7 +391,7 @@ main() {
             fi
             ;;
         "help"|"-h"|"--help")
-            echo "WISP - Work Time Tracker"
+            echo "WISP Is a Simple Pomodoro"
             echo
             echo "Usage: $0 [command] [duration]"
             echo

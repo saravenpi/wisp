@@ -18,8 +18,8 @@ print_error() { echo -e "${RED}❌ $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
 
 main() {
-    echo -e "${BLUE}🌟 WISP - Work Session Manager${NC}"
-    echo -e "${BLUE}================================${NC}"
+    echo -e "${BLUE}🌟 WISP Is a Simple Pomodoro${NC}"
+    echo -e "${BLUE}===============================${NC}"
     echo
 
     if ! command -v bash >/dev/null 2>&1; then
@@ -97,7 +97,7 @@ case "${1:-}" in
     "--help"|"-h")
         echo "Usage: $0 [--help]"
         echo
-        echo "Installs wisp CLI and sets up configuration files."
+        echo "Installs WISP (WISP Is a Simple Pomodoro) CLI and sets up configuration files."
         echo "The CLI will be installed to $INSTALL_DIR"
         exit 0
         ;;

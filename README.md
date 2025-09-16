@@ -1,6 +1,6 @@
-# 🌟 WISP - Work Session Manager
+# 🌟 WISP Is a Simple Pomodoro
 
-A lightweight, customizable work session tracker with tmux integration. WISP helps you manage focused work sessions using the Pomodoro Technique or custom durations, with beautiful status displays and comprehensive session tracking.
+A lightweight, customizable Pomodoro timer with tmux integration. WISP helps you manage focused work sessions using the Pomodoro Technique or custom durations, with beautiful status displays and comprehensive session tracking.
 
 ## ✨ Features
 

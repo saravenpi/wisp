@@ -123,18 +123,14 @@ name_active_session() {
         return 1
     fi
 
-    sed -i.bak '/name:/d' "$WORK_LOG"
-
-    awk -v name="$session_name" '
-        /status: (in_progress|paused)/ {
-            print $0
-            print "    name: " name
-            next
-        }
-        { print }
-    ' "$WORK_LOG.bak" > "$WORK_LOG"
-
+    sed -i.bak '/status: in_progress\|status: paused/{
+        N
+        /name:/!s/$/\
+    name: '"$session_name"'/
+        s/name: .*/name: '"$session_name"'/
+    }' "$WORK_LOG"
     rm -f "$WORK_LOG.bak" 2>/dev/null
+
     echo "Session named: $session_name"
 }
 
@@ -368,10 +364,8 @@ get_session_name() {
     local prompt_msg="${1:-Session name (optional):}"
     local session_name=""
 
-    if command -v gum >/dev/null 2>&1; then
+    if command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
         session_name=$(gum input --placeholder "$prompt_msg" --width 40 --show-help=false 2>/dev/null || echo "")
-    elif [ -n "$TMUX" ]; then
-        read -p "$prompt_msg " session_name
     else
         read -p "$prompt_msg " session_name
     fi

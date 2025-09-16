@@ -5,18 +5,23 @@ CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 default_work_toggle_key="m"
 default_work_menu_key="M"
 default_work_stop_key="_"
+default_notifications="true"
 
 work_toggle_key=$(tmux show-option -gqv @wisp_work_toggle_key)
 work_menu_key=$(tmux show-option -gqv @wisp_work_menu_key)
 work_stop_key=$(tmux show-option -gqv @wisp_work_stop_key)
+wisp_notifications=$(tmux show-option -gqv @wisp_notifications)
 
 work_toggle_key=${work_toggle_key:-$default_work_toggle_key}
 work_menu_key=${work_menu_key:-$default_work_menu_key}
 work_stop_key=${work_stop_key:-$default_work_stop_key}
+wisp_notifications=${wisp_notifications:-$default_notifications}
 
-tmux bind-key $work_toggle_key run-shell "$CURRENT_DIR/scripts/wisp-toggle.sh"
-tmux bind-key $work_menu_key run-shell "$CURRENT_DIR/scripts/wisp-menu.sh"
-tmux bind-key $work_stop_key run-shell "$CURRENT_DIR/scripts/wisp-stop.sh"
+tmux set-environment -g WISP_NOTIFICATIONS "$wisp_notifications"
+
+tmux bind-key $work_toggle_key run-shell "WISP_NOTIFICATIONS='$wisp_notifications' $CURRENT_DIR/scripts/wisp-toggle.sh"
+tmux bind-key $work_menu_key run-shell "WISP_NOTIFICATIONS='$wisp_notifications' $CURRENT_DIR/scripts/wisp-menu.sh"
+tmux bind-key $work_stop_key run-shell "WISP_NOTIFICATIONS='$wisp_notifications' $CURRENT_DIR/scripts/wisp-stop.sh"
 
 status_right=$(tmux show-option -gqv status-right)
 if [[ "$status_right" != *"wisp-format"* ]]; then

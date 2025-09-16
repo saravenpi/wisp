@@ -14,6 +14,35 @@ EOF
 get_date() { date +%Y-%m-%d; }
 get_time() { date +%H:%M; }
 get_timestamp() { date +%s; }
+
+can_send_notifications() {
+    if [ "$WISP_NOTIFICATIONS" = "false" ]; then
+        return 1
+    fi
+
+    if command -v osascript >/dev/null 2>&1; then
+        return 0
+    elif command -v notify-send >/dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+send_notification() {
+    local title="$1"
+    local message="$2"
+
+    if ! can_send_notifications; then
+        return 0
+    fi
+
+    if command -v osascript >/dev/null 2>&1; then
+        osascript -e "display notification \"$message\" with title \"$title\""
+    elif command -v notify-send >/dev/null 2>&1; then
+        notify-send "$title" "$message"
+    fi
+}
 log_session_start() {
     local session_type="${1:-work}"
     local duration="${2:-$DEFAULT_DURATION}"
@@ -42,7 +71,12 @@ log_session_complete() {
     local end_time=$(get_time)
     local end_timestamp=$(get_timestamp)
 
+    local session_name=""
+    local planned_minutes=""
     if [ -f "$WORK_LOG" ]; then
+        session_name=$(grep -A 10 "status: in_progress\|status: paused" "$WORK_LOG" | grep "name:" | tail -1 | sed 's/.*name: //' || echo "")
+        planned_minutes=$(grep -A 10 "status: in_progress\|status: paused" "$WORK_LOG" | grep "planned_minutes:" | tail -1 | sed 's/.*planned_minutes: //' || echo "25")
+
         sed -i.bak '
             /status: in_progress/ {
                 s/status: in_progress/status: completed/
@@ -60,6 +94,12 @@ log_session_complete() {
             /pause_timestamp:/d
         ' "$WORK_LOG"
         rm -f "$WORK_LOG.bak" 2>/dev/null
+    fi
+
+    if [ -n "$session_name" ]; then
+        send_notification "WISP Session Complete" "Completed ${planned_minutes}min session: $session_name"
+    else
+        send_notification "WISP Session Complete" "Completed ${planned_minutes}min work session"
     fi
 
     if [ -n "$TMUX" ]; then

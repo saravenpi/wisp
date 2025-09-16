@@ -4,7 +4,6 @@ format_status() {
     local status="$1"
     local display="$2"
 
-    # Default tmux colors from the original config
     local running_fg="${wisp_running_fg:-#161617}"
     local running_bg="${wisp_running_bg:-#7fb4ca}"
     local paused_fg="${wisp_paused_fg:-#161617}"
@@ -14,7 +13,6 @@ format_status() {
     local inactive_fg="${wisp_inactive_fg:-#c9c7cd}"
     local inactive_bg="${wisp_inactive_bg:-#353539}"
 
-    # Get colors from tmux options if available
     running_fg=$(tmux show-option -gqv @wisp_running_fg 2>/dev/null || echo "$running_fg")
     running_bg=$(tmux show-option -gqv @wisp_running_bg 2>/dev/null || echo "$running_bg")
     paused_fg=$(tmux show-option -gqv @wisp_paused_fg 2>/dev/null || echo "$paused_fg")

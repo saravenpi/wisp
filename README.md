@@ -55,20 +55,31 @@ wisp history
 
 ## 📦 Installation Methods
 
-### Method 1: Standalone CLI Installation
+### Method 1: Recommended Installation (CLI + Tmux)
 
-Run the install script to set up wisp as a standalone CLI tool:
-
+**Step 1: Install CLI tools**
 ```bash
+git clone https://github.com/saravenpi/wisp.git
+cd wisp
 ./install.sh
 ```
 
 This installs:
 - `wisp` CLI tool to `~/.local/bin/`
-- `wisp-format` formatting utility
+- `wisp-format` formatting utility to `~/.local/bin/`
 - Format templates to `~/.config/wisp/formats/`
 
-### Method 2: Tmux Plugin Installation (TPM)
+**Step 2: Add tmux integration** (optional)
+Add to your `~/.tmux.conf`:
+```bash
+# Basic integration
+set -g status-right "#(wisp-format tmux)#[fg=default,bg=default]"
+bind m run-shell "wisp toggle"
+bind M run-shell "wisp-menu"
+bind _ run-shell "wisp stop"
+```
+
+### Method 2: TPM Plugin Installation
 
 Add wisp as a tmux plugin using [TPM](https://github.com/tmux-plugins/tpm):
 
@@ -79,6 +90,7 @@ Add wisp as a tmux plugin using [TPM](https://github.com/tmux-plugins/tpm):
 
 2. **Install with TPM:**
    - Press `prefix + I` to install the plugin
+   - Plugin will work with or without CLI installation
 
 3. **Optional: Customize key bindings**
    ```bash
@@ -86,23 +98,6 @@ Add wisp as a tmux plugin using [TPM](https://github.com/tmux-plugins/tpm):
    set -g @wisp_work_menu_key 'M'      # Default: M
    set -g @wisp_work_stop_key '_'      # Default: _
    ```
-
-### Method 3: Manual Tmux Integration
-
-Add to your `~/.tmux.conf`:
-
-```bash
-# Source wisp plugin
-run-shell '/path/to/wisp/wisp.tmux'
-
-# Add wisp status to your status bar
-set -g status-right "#(/path/to/wisp/scripts/wisp-format.sh tmux)#[fg=default,bg=default]"
-
-# Optional: Add key bindings
-bind m run-shell "/path/to/wisp/scripts/wisp-toggle.sh"
-bind M run-shell "/path/to/wisp/scripts/wisp-menu.sh"
-bind _ run-shell "/path/to/wisp/scripts/wisp-stop.sh"
-```
 
 ## 🎨 Customization
 

@@ -27,7 +27,13 @@ get_status_info() {
     local remaining_seconds=$((planned_seconds - elapsed_seconds))
 
     if [ $remaining_seconds -le 0 ]; then
-        "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../bin/wisp" stop >/dev/null 2>&1
+        if command -v wisp >/dev/null 2>&1; then
+            wisp stop >/dev/null 2>&1
+        elif [ -x "$HOME/.local/bin/wisp" ]; then
+            "$HOME/.local/bin/wisp" stop >/dev/null 2>&1
+        else
+            "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../bin/wisp" stop >/dev/null 2>&1
+        fi
         echo "completed||󰒲 Inactive"
         return
     fi

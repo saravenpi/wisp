@@ -13,8 +13,8 @@ get_wisp_cmd() {
 WISP_CMD=$(get_wisp_cmd)
 DURATION="${1:-25}"
 
-if command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
-    SESSION_NAME=$(gum input --placeholder "Session name (press Enter to skip)" --width 40 --show-help=false 2>/dev/null || echo "")
+if command -v gum >/dev/null 2>&1; then
+    SESSION_NAME=$(gum input --no-show-help --placeholder "Session name (press Enter to skip)" --prompt "Session > " --width 40 2>/dev/null || echo "")
 else
     echo -n "Session name (press Enter to skip): "
     read SESSION_NAME

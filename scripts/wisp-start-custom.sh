@@ -27,9 +27,6 @@ if command -v gum >/dev/null 2>&1; then
             echo "Starting ${DURATION}min session"
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
         fi
-        echo
-        echo "Press Enter to close..."
-        read -r
     fi
 else
     echo -n "Duration in minutes: "

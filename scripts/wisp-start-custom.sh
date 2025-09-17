@@ -33,5 +33,7 @@ else
         else
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
         fi
+        echo "Press Enter to close..."
+        read -r
     fi
 fi

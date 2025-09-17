@@ -15,6 +15,10 @@ DURATION="${1:-25}"
 
 if command -v gum >/dev/null 2>&1; then
     SESSION_NAME=$(gum input --no-show-help --placeholder "Session name (press Enter to skip)" --prompt "Session > " --width 40 2>/dev/null || echo "")
+    if [ $? -ne 0 ]; then
+        echo -n "Session name (press Enter to skip): "
+        read SESSION_NAME
+    fi
 else
     echo -n "Session name (press Enter to skip): "
     read SESSION_NAME

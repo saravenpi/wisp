@@ -13,14 +13,23 @@ get_wisp_cmd() {
 WISP_CMD=$(get_wisp_cmd)
 
 if command -v gum >/dev/null 2>&1; then
-    DURATION=$(gum input --no-show-help --placeholder "Duration in minutes" --prompt "Duration > " --width 30 2>/dev/null || echo "")
+    echo "🕒 Custom Session Setup"
+    echo
+    DURATION=$(gum input --no-show-help --placeholder "Duration in minutes" --prompt "Duration > " --width 30 || echo "")
     if [ -n "$DURATION" ]; then
-        SESSION_NAME=$(gum input --no-show-help --placeholder "Session name (press Enter to skip)" --prompt "Session > " --width 40 2>/dev/null || echo "")
+        echo
+        SESSION_NAME=$(gum input --no-show-help --placeholder "Session name (press Enter to skip)" --prompt "Session > " --width 40 || echo "")
+        echo
         if [ -n "$SESSION_NAME" ]; then
+            echo "Starting ${DURATION}min session: $SESSION_NAME"
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
         else
+            echo "Starting ${DURATION}min session"
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
         fi
+        echo
+        echo "Press Enter to close..."
+        read -r
     fi
 else
     echo -n "Duration in minutes: "

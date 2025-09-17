@@ -56,8 +56,8 @@ if [ "$has_active_session" = true ]; then
             "" \
             "Stop Session" s "run-shell 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $WISP_CMD stop'" \
             "" \
-            "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '$WISP_CMD history'" \
-            "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '$WISP_CMD stats'"
+            "Show History" h "display-popup -x C -y C -w 90 -h 25 -S -E '$WISP_CMD history; echo; echo \"Press any key to close...\"; read -n 1'" \
+            "Show Stats" t "display-popup -x C -y C -w 70 -h 20 -S -E '$WISP_CMD stats; echo; echo \"Press any key to close...\"; read -n 1'"
     elif [ "$session_status" = "paused" ]; then
         tmux display-menu -x C -y C -T " Wisp " \
             "Name Session" n "display-popup -x C -y C -w 40 -h 3 -T ' Name Session ' -E 'if command -v gum >/dev/null 2>&1; then name=\$(gum input --no-show-help --placeholder \"Session name\" --prompt \"Session > \" --width 30); else echo -n \"Session name: \"; read name; fi; if [ -n \"\$name\" ]; then WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $WISP_CMD name \"\$name\"; fi; read -p \"Press Enter to continue...\"'" \
@@ -65,8 +65,8 @@ if [ "$has_active_session" = true ]; then
             "" \
             "Stop Session" s "run-shell 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $WISP_CMD stop'" \
             "" \
-            "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '$WISP_CMD history'" \
-            "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '$WISP_CMD stats'"
+            "Show History" h "display-popup -x C -y C -w 90 -h 25 -S -E '$WISP_CMD history; echo; echo \"Press any key to close...\"; read -n 1'" \
+            "Show Stats" t "display-popup -x C -y C -w 70 -h 20 -S -E '$WISP_CMD stats; echo; echo \"Press any key to close...\"; read -n 1'"
     fi
 else
     CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -75,6 +75,6 @@ else
         "Start 45min Session" 2 "display-popup -x C -y C -w 50 -h 3 -E '$CURRENT_DIR/wisp-start-with-name.sh 45'" \
         "Start Custom Session" s "command-prompt -p 'Duration (minutes):' 'display-popup -x C -y C -w 50 -h 3 -E \"$CURRENT_DIR/wisp-start-with-name.sh %1\"'" \
         "" \
-        "Show History" h "display-popup -x C -y C -w 80 -h 20 -E '$WISP_CMD history'" \
-        "Show Stats" t "display-popup -x C -y C -w 60 -h 15 -E '$WISP_CMD stats'"
+        "Show History" h "display-popup -x C -y C -w 90 -h 25 -S -E '$WISP_CMD history; echo; echo \"Press any key to close...\"; read -n 1'" \
+        "Show Stats" t "display-popup -x C -y C -w 70 -h 20 -S -E '$WISP_CMD stats; echo; echo \"Press any key to close...\"; read -n 1'"
 fi

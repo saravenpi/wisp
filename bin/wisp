@@ -170,12 +170,43 @@ name_active_session() {
         return 1
     fi
 
-    sed -i.bak '/status: in_progress\|status: paused/{
-        N
-        /name:/!s/$/\
-    name: '"$session_name"'/
-        s/name: .*/name: '"$session_name"'/
-    }' "$WORK_LOG"
+    # Create a temporary file to build the updated content
+    local temp_file=$(mktemp)
+    local in_active_session=false
+    local has_name=false
+
+    while IFS= read -r line; do
+        echo "$line" >> "$temp_file"
+
+        # Check if we're entering an active session
+        if [[ "$line" =~ ^[[:space:]]*status:[[:space:]]*(in_progress|paused)[[:space:]]*$ ]]; then
+            in_active_session=true
+            has_name=false
+        # Check if this session already has a name
+        elif [[ "$line" =~ ^[[:space:]]*name: ]]; then
+            if [ "$in_active_session" = true ]; then
+                # Replace the existing name
+                sed -i.bak '$ s/.*/    name: '"$session_name"'/' "$temp_file"
+                has_name=true
+            fi
+        # Check if we're leaving the current session (empty line or new session)
+        elif [[ "$line" =~ ^[[:space:]]*$ ]] || [[ "$line" =~ ^[[:space:]]*-[[:space:]]*date: ]]; then
+            if [ "$in_active_session" = true ] && [ "$has_name" = false ]; then
+                # Insert name before this line
+                sed -i.bak '$ i\
+    name: '"$session_name"'' "$temp_file"
+            fi
+            in_active_session=false
+        fi
+    done < "$WORK_LOG"
+
+    # Handle case where active session is at the end of file
+    if [ "$in_active_session" = true ] && [ "$has_name" = false ]; then
+        echo "    name: $session_name" >> "$temp_file"
+    fi
+
+    # Replace the original file
+    mv "$temp_file" "$WORK_LOG"
     rm -f "$WORK_LOG.bak" 2>/dev/null
 
     echo "Session named: $session_name"
@@ -327,7 +358,7 @@ show_grouped_log() {
             if [ "$session_status" = "completed" ]; then
                 completed_for_day=$((completed_for_day + 1))
             fi
-            display_session "$start_time" "$end_time" "$session_type" "$planned_minutes" "$session_status"
+            display_session "$start_time" "$end_time" "$session_type" "$planned_minutes" "$session_status" "$session_name"
         fi
 
         # Show daily summary

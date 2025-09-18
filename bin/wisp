@@ -152,6 +152,25 @@ log_session_resume() {
     fi
 }
 
+get_active_session_name() {
+    if [ ! -f "$WORK_LOG" ]; then
+        return 1
+    fi
+
+    awk '
+    BEGIN { in_active = 0; session_name = "" }
+    /^  - date:/ { in_active = 0; session_name = "" }
+    /^    status: (in_progress|paused)/ { in_active = 1 }
+    in_active && /^    name:/ {
+        gsub(/^    name: /, "", $0)
+        session_name = $0
+    }
+    END {
+        if (session_name != "") print session_name
+    }
+    ' "$WORK_LOG"
+}
+
 name_active_session() {
     local session_name="$1"
 
@@ -170,46 +189,63 @@ name_active_session() {
         return 1
     fi
 
-    # Create a temporary file to build the updated content
-    local temp_file=$(mktemp)
-    local in_active_session=false
-    local has_name=false
+    # Use a simpler approach: process the file with awk for better control
+    awk -v new_name="$session_name" '
+    BEGIN {
+        in_active = 0
+        session_modified = 0
+    }
 
-    while IFS= read -r line; do
-        echo "$line" >> "$temp_file"
+    # Start of a new session
+    /^  - date:/ {
+        in_active = 0
+        session_modified = 0
+        print
+        next
+    }
 
-        # Check if we're entering an active session
-        if [[ "$line" =~ ^[[:space:]]*status:[[:space:]]*(in_progress|paused)[[:space:]]*$ ]]; then
-            in_active_session=true
-            has_name=false
-        # Check if this session already has a name
-        elif [[ "$line" =~ ^[[:space:]]*name: ]]; then
-            if [ "$in_active_session" = true ]; then
-                # Replace the existing name
-                sed -i.bak '$ s/.*/    name: '"$session_name"'/' "$temp_file"
-                has_name=true
-            fi
-        # Check if we're leaving the current session (empty line or new session)
-        elif [[ "$line" =~ ^[[:space:]]*$ ]] || [[ "$line" =~ ^[[:space:]]*-[[:space:]]*date: ]]; then
-            if [ "$in_active_session" = true ] && [ "$has_name" = false ]; then
-                # Insert name before this line
-                sed -i.bak '$ i\
-    name: '"$session_name"'' "$temp_file"
-            fi
-            in_active_session=false
-        fi
-    done < "$WORK_LOG"
+    # Found active session status
+    /^    status: (in_progress|paused)/ {
+        in_active = 1
+        print
+        next
+    }
 
-    # Handle case where active session is at the end of file
-    if [ "$in_active_session" = true ] && [ "$has_name" = false ]; then
-        echo "    name: $session_name" >> "$temp_file"
-    fi
+    # Skip existing name lines in active session (we will add our own)
+    in_active && /^    name:/ {
+        if (!session_modified) {
+            print "    name: " new_name
+            session_modified = 1
+        }
+        next
+    }
 
-    # Replace the original file
-    mv "$temp_file" "$WORK_LOG"
+    # Add name after status if we reach end of session block without finding name
+    /^$/ && in_active && !session_modified {
+        print "    name: " new_name
+        session_modified = 1
+        print
+        next
+    }
+
+    # Print all other lines
+    { print }
+
+    # Handle end of file case
+    END {
+        if (in_active && !session_modified) {
+            print "    name: " new_name
+        }
+    }
+    ' "$WORK_LOG" > "$WORK_LOG.tmp" && mv "$WORK_LOG.tmp" "$WORK_LOG"
     rm -f "$WORK_LOG.bak" 2>/dev/null
 
     echo "Session named: $session_name"
+
+    # Force immediate tmux status refresh
+    if [ -n "$TMUX" ]; then
+        tmux refresh-client -S >/dev/null 2>&1
+    fi
 }
 
 calculate_session_duration() {

@@ -6,10 +6,12 @@ A lightweight, customizable Pomodoro timer with tmux integration. WISP helps you
 
 - 🍅 **Pomodoro Timer**: Built-in 25-minute work sessions with custom duration support
 - 📊 **Session Tracking**: Comprehensive logging with statistics and history
+- 🏷️ **Session Naming**: Name your work sessions for better organization and tracking
 - 🎨 **Customizable Formats**: Multiple display formats for different use cases
-- 🔧 **Tmux Integration**: Seamless status bar integration with configurable colors
+- 🔧 **Tmux Integration**: Seamless status bar integration with session names and configurable colors
 - ⚡ **Lightweight**: Pure bash implementation with minimal dependencies
 - 🎯 **Focus States**: Track running, paused, completed, and cancelled sessions
+- 📱 **Interactive Menus**: Beautiful tmux popups with gum integration
 
 ## 🚀 Quick Start
 
@@ -38,8 +40,14 @@ A lightweight, customizable Pomodoro timer with tmux integration. WISP helps you
 # Start a 25-minute work session
 wisp start
 
+# Start a named session
+wisp start 25 "Deep Work Session"
+
 # Start a custom duration session
 wisp start 45
+
+# Name the current active session
+wisp name "Project X Development"
 
 # Toggle session (start/pause/resume)
 wisp toggle
@@ -50,7 +58,7 @@ wisp stop
 # View session statistics
 wisp stats
 
-# View session history
+# View session history (shows session names)
 wisp history
 ```
 
@@ -73,11 +81,14 @@ This installs:
 **Step 2: Add tmux integration** (optional)
 Add to your `~/.tmux.conf`:
 ```bash
-# Basic integration
+# Basic integration with session names
 set -g status-right "#(wisp-format tmux)#[fg=default,bg=default]"
-bind m run-shell "wisp toggle"
-bind M run-shell "wisp-menu"
-bind _ run-shell "wisp stop"
+set -g status-interval 1  # Refresh every second for live timer
+
+# Key bindings
+bind m run-shell "wisp toggle"        # Toggle timer
+bind M run-shell "wisp-menu"          # Interactive menu with naming
+bind _ run-shell "wisp stop"          # Stop timer
 ```
 
 ### Method 2: TPM Plugin Installation
@@ -99,6 +110,48 @@ Add wisp as a tmux plugin using [TPM](https://github.com/tmux-plugins/tpm):
    set -g @wisp_work_menu_key 'M'      # Default: M
    set -g @wisp_work_stop_key '_'      # Default: _
    ```
+
+## 🏷️ Session Naming
+
+WISP supports naming your work sessions for better organization and tracking.
+
+### Ways to Name Sessions
+
+1. **During Creation**
+   ```bash
+   wisp start 25 "Deep Work Session"
+   wisp start 45 "Code Review"
+   ```
+
+2. **Name Active Session**
+   ```bash
+   wisp name "Project X Development"
+   ```
+
+3. **Through tmux Menu** (prefix + M)
+   - Start new sessions with name prompts
+   - Rename existing active sessions
+   - Uses gum for beautiful input dialogs (if available)
+
+### Session Name Display
+
+Session names appear in:
+- **Tmux status bar**: `󰥔 24:30 - Deep Work Session`
+- **History logs**: Organized by session names
+- **Statistics**: Track productivity by project names
+
+### Example Usage
+
+```bash
+# Start named coding session
+wisp start 50 "Feature Implementation"
+
+# Rename if you forgot to name it initially
+wisp name "Bug Fix Marathon"
+
+# View history with session names
+wisp history
+```
 
 ## 🎨 Customization
 
@@ -151,7 +204,8 @@ Use with: `wisp-format custom`
 ### Session Management
 | Command | Description |
 |---------|-------------|
-| `wisp start [minutes]` | Start new work session (default: 25 min) |
+| `wisp start [minutes] [name]` | Start new work session (default: 25 min) |
+| `wisp name "Session Name"` | Name the current active session |
 | `wisp toggle` | Toggle session state (start/pause/resume) |
 | `wisp pause` | Pause current session |
 | `wisp resume` | Resume paused session |

@@ -17,18 +17,8 @@ if [ -f "$WORK_LOG" ] && (grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null 
     WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD toggle
 else
     if [ -n "$TMUX" ]; then
-        if command -v gum >/dev/null 2>&1; then
-            tmux display-popup -x C -y C -w 50 -h 3 -E "
-                name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ' --width 40)
-                if [ \$? -eq 0 ] && [ -n \"\$name\" ]; then
-                    WISP_NOTIFICATIONS=\"${WISP_NOTIFICATIONS:-true}\" $WISP_CMD start 25 \"\$name\"
-                else
-                    WISP_NOTIFICATIONS=\"${WISP_NOTIFICATIONS:-true}\" $WISP_CMD start 25
-                fi
-            "
-        else
-            tmux command-prompt -p "Session name (Enter to skip):" "run-shell 'WISP_NOTIFICATIONS=\"${WISP_NOTIFICATIONS:-true}\" $WISP_CMD start 25 \"%%\"'"
-        fi
+        CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+        tmux display-popup -x C -y C -w 50 -h 3 -E "$CURRENT_DIR/wisp-start-with-name.sh 25"
     else
         WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD toggle
     fi

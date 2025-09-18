@@ -62,8 +62,11 @@ log_session_start() {
     echo "    status: in_progress" >> "$WORK_LOG"
     echo "" >> "$WORK_LOG"
 
+    # Force immediate tmux status refresh for session creation
     if [ -n "$TMUX" ]; then
+        sleep 0.1  # Brief pause to ensure file write is complete
         tmux refresh-client -S >/dev/null 2>&1
+        tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
     fi
 }
 
@@ -242,9 +245,11 @@ name_active_session() {
 
     echo "Session named: $session_name"
 
-    # Force immediate tmux status refresh
+    # Force immediate tmux status refresh for session naming
     if [ -n "$TMUX" ]; then
+        sleep 0.1  # Brief pause to ensure file write is complete
         tmux refresh-client -S >/dev/null 2>&1
+        tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
     fi
 }
 

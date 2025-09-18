@@ -12,7 +12,7 @@ get_status_info() {
         return
     fi
 
-    IFS='|' read -r start_time planned_minutes start_timestamp status pause_timestamp total_pause_time <<< "$session_info"
+    IFS='|' read -r start_time planned_minutes start_timestamp status pause_timestamp total_pause_time session_name <<< "$session_info"
 
     local current_timestamp=$(date +%s)
     local elapsed_seconds
@@ -42,10 +42,16 @@ get_status_info() {
     local remaining_secs=$((remaining_seconds % 60))
     local time_display=$(printf "%02d:%02d" "$remaining_minutes" "$remaining_secs")
 
+    # Include session name if present
+    local display_suffix=""
+    if [ -n "$session_name" ]; then
+        display_suffix=" - $session_name"
+    fi
+
     if [ "$status" = "paused" ]; then
-        echo "paused||󰏤 $time_display"
+        echo "paused||󰏤 $time_display$display_suffix"
     else
-        echo "running||󰥔 $time_display"
+        echo "running||󰥔 $time_display$display_suffix"
     fi
 }
 
@@ -82,6 +88,7 @@ main() {
     local session_status=""
     local pause_timestamp=""
     local total_pause_time=0
+    local session_name=""
 
     while IFS= read -r line; do
         if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*date: ]]; then
@@ -92,12 +99,15 @@ main() {
             session_status=""
             pause_timestamp=""
             total_pause_time=0
+            session_name=""
         elif [[ "$line" =~ ^[[:space:]]*start_time:[[:space:]]*(.+) ]]; then
             start_time="${BASH_REMATCH[1]}"
         elif [[ "$line" =~ ^[[:space:]]*start_timestamp:[[:space:]]*([0-9]+) ]]; then
             start_timestamp="${BASH_REMATCH[1]}"
         elif [[ "$line" =~ ^[[:space:]]*planned_minutes:[[:space:]]*([0-9]+) ]]; then
             planned_minutes="${BASH_REMATCH[1]}"
+        elif [[ "$line" =~ ^[[:space:]]*name:[[:space:]]*(.+) ]]; then
+            session_name="${BASH_REMATCH[1]}"
         elif [[ "$line" =~ pause_timestamp:[[:space:]]*([0-9]+) ]]; then
             pause_timestamp="${BASH_REMATCH[1]}"
         elif [[ "$line" =~ ^[[:space:]]*total_pause_time:[[:space:]]*([0-9]+) ]]; then
@@ -112,7 +122,7 @@ main() {
     done < "$WORK_LOG"
 
     if [ "$session_found" = "found" ]; then
-        session_info="$start_time|$planned_minutes|$start_timestamp|$session_status|${pause_timestamp:-}|${total_pause_time:-0}"
+        session_info="$start_time|$planned_minutes|$start_timestamp|$session_status|${pause_timestamp:-}|${total_pause_time:-0}|${session_name:-}"
         local result=$(get_status_info "$session_info" "$format_name")
         IFS='||' read -r status display <<< "$result"
         apply_format "$status" "$display" "$format_name"

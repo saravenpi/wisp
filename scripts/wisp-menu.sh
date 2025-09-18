@@ -52,7 +52,7 @@ if [ "$has_active_session" = true ]; then
     CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     if [ "$session_status" = "running" ]; then
         tmux display-menu -x C -y C -T " Wisp " \
-            "Name Session" n "display-popup -x C -y C -w 40 -h 3 -T ' Name Session ' -E 'if command -v gum >/dev/null 2>&1; then name=\$(gum input --no-show-help --placeholder \"Session name\" --prompt \"Session > \" --width 30); else echo -n \"Session name: \"; read name; fi; if [ -n \"\$name\" ]; then WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/../bin/wisp name \"\$name\"; fi; read -p \"Press Enter to continue...\"'" \
+            "Name Session" n "display-popup -x C -y C -w 50 -h 3 -T ' Name Session ' -E '$CURRENT_DIR/wisp-name-session.sh'" \
             "Pause Session" p "run-shell 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/../bin/wisp pause'" \
             "" \
             "Stop Session" s "run-shell 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/../bin/wisp stop'" \
@@ -61,7 +61,7 @@ if [ "$has_active_session" = true ]; then
             "Show Stats" t "display-popup -x C -y C -w 70 -h 20 -S -E '$CURRENT_DIR/../bin/wisp stats; echo; echo \"Press any key to close...\"; read -n 1'"
     elif [ "$session_status" = "paused" ]; then
         tmux display-menu -x C -y C -T " Wisp " \
-            "Name Session" n "display-popup -x C -y C -w 40 -h 3 -T ' Name Session ' -E 'if command -v gum >/dev/null 2>&1; then name=\$(gum input --no-show-help --placeholder \"Session name\" --prompt \"Session > \" --width 30); else echo -n \"Session name: \"; read name; fi; if [ -n \"\$name\" ]; then WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/../bin/wisp name \"\$name\"; fi; read -p \"Press Enter to continue...\"'" \
+            "Name Session" n "display-popup -x C -y C -w 50 -h 3 -T ' Name Session ' -E '$CURRENT_DIR/wisp-name-session.sh'" \
             "Resume Session" r "run-shell 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/../bin/wisp resume'" \
             "" \
             "Stop Session" s "run-shell 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/../bin/wisp stop'" \

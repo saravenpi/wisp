@@ -37,35 +37,19 @@ get_gum_input() {
 
 WISP_CMD=$(get_wisp_cmd)
 
-echo "🕒 Custom Session Setup"
+echo "📝 Name Current Session"
 echo
 
-DURATION=$(get_gum_input "Duration in minutes" "Duration > " 30)
+name=$(get_gum_input "Session name" "Session > " 40)
 
-if [ -n "$DURATION" ]; then
+if [ -n "$name" ]; then
     echo
-    SESSION_NAME=$(get_gum_input "Session name (press Enter to skip)" "Session > " 40)
-    echo
-
-    if [ -n "$SESSION_NAME" ]; then
-        echo "Starting ${DURATION}min session: $SESSION_NAME"
-        WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
-    else
-        echo "Starting ${DURATION}min session"
-        WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
-    fi
-
-    echo "✅ Session started successfully!"
-
-    # Force immediate tmux status refresh after session creation
-    if [ -n "$TMUX" ]; then
-        sleep 0.2  # Slightly longer pause to ensure session is fully created
-        tmux refresh-client -S >/dev/null 2>&1
-        tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
-    fi
+    echo "Naming session: $name"
+    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD name "$name"
+    echo "✅ Session named successfully!"
 else
-    echo "❌ No duration provided"
+    echo "❌ No name provided"
 fi
 
 echo
-read -p "Press Enter to close..."
+read -p "Press Enter to continue..."

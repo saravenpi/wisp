@@ -1,4 +1,4 @@
-# 🌟 WISP Is a Simple Pomodoro
+# WISP Is a Simple Pomodoro
 
 A lightweight, customizable Pomodoro timer with tmux integration. WISP helps you manage focused work sessions using the Pomodoro Technique or custom durations, with beautiful status displays and comprehensive session tracking.
 
@@ -19,6 +19,7 @@ A lightweight, customizable Pomodoro timer with tmux integration. WISP helps you
    ```bash
    git clone https://github.com/saravenpi/wisp.git ~/.local/share/wisp
    cd ~/.local/share/wisp
+
    ```
 
 2. **Run the installation script**

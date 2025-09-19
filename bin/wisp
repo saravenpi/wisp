@@ -502,9 +502,16 @@ get_session_name() {
     # Fallback to standard read for tmux environments or when gum is unavailable
     printf "%s" "$prompt" >&2
 
-    # Use read with proper signal handling for escape detection
-    if ! read -r result; then
-        # read failed (Ctrl+C, EOF, etc.)
+    # Read with escape sequence detection
+    IFS= read -r result
+
+    # Check for escape sequences or special cancellation inputs
+    if [ "${result#$'\x1b'}" != "$result" ] || [ "${result#$'\033'}" != "$result" ] || [ "$result" = $'\x1b' ] || [ "$result" = $'\033' ]; then
+        return 1
+    fi
+
+    # Check for Ctrl+C sequence
+    if [ "$result" = $'\x03' ]; then
         return 1
     fi
 

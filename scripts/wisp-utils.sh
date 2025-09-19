@@ -11,20 +11,14 @@ prompt_for_name() {
     local width="${3:-40}"
     local result=""
 
-    if command -v gum >/dev/null 2>&1; then
-        # Try gum first, with proper error handling for tmux environments
-        result=$(gum input --no-show-help --placeholder "$placeholder" --prompt "$prompt" --width "$width" 2>/dev/null)
-        local exit_code=$?
-
-        # If gum succeeds, return the result
-        if [ $exit_code -eq 0 ]; then
-            echo "$result"
-            return 0
-        fi
+    # Try gum first if available and we have proper terminal access
+    if command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
+        # Try gum with proper error handling for tmux environments
+        result=$(gum input --no-show-help --placeholder "$placeholder" --prompt "$prompt" --width "$width" 2>/dev/null || echo "")
+    else
+        # Fallback to standard read for tmux environments or when gum is unavailable
+        read -p "$prompt" result
     fi
 
-    # Fallback to standard read for tmux environments or when gum is not available
-    echo -n "$prompt"
-    read -r result
     echo "$result"
 }

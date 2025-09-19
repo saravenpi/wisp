@@ -26,6 +26,7 @@ prompt_for_name() {
     fi
 
     # Fallback to standard read for tmux environments or when gum is unavailable
-    read -p "$prompt" result
+    printf "%s" "$prompt" >&2
+    read -r result
     echo "$result"
 }

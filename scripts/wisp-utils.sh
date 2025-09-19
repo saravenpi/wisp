@@ -27,6 +27,12 @@ prompt_for_name() {
 
     # Fallback to standard read for tmux environments or when gum is unavailable
     printf "%s" "$prompt" >&2
-    read -r result
+
+    # Use read with proper signal handling for escape detection
+    if ! read -r result; then
+        # read failed (Ctrl+C, EOF, etc.)
+        return 1
+    fi
+
     echo "$result"
 }

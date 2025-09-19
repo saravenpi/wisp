@@ -1,6 +1,10 @@
 
 #!/usr/bin/env bash
 
+# Source shared utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../scripts/wisp-utils.sh"
+
 WORK_LOG="$HOME/.wisp.yml"
 DEFAULT_DURATION=25
 init_work_log() {
@@ -480,15 +484,7 @@ show_stats() {
 }
 
 get_session_name() {
-    local session_name=""
-
-    if command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
-        session_name=$(gum input --no-show-help --placeholder "Session name (press Enter to skip)" --prompt "Session > " --width 40 2>/dev/null || echo "")
-    else
-        read -p "Session name (press Enter to skip): " session_name
-    fi
-
-    echo "$session_name"
+    prompt_for_name "Session name (press Enter to skip)" "Session > " 40
 }
 
 main() {

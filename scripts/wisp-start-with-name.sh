@@ -16,15 +16,12 @@ get_wisp_cmd() {
 WISP_CMD=$(get_wisp_cmd)
 DURATION="${1:-25}"
 
-if SESSION_NAME=$(prompt_for_name "Session name (press Enter to skip)" "Session > " 40); then
-    if [ -n "$SESSION_NAME" ]; then
-        WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION "$SESSION_NAME"
-    else
-        WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION
-    fi
+SESSION_NAME=$(prompt_for_name "Session name (press Enter to skip)" "Session > " 40)
+
+if [ -n "$SESSION_NAME" ]; then
+    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION "$SESSION_NAME"
 else
-    echo "❌ Cancelled"
-    exit 0
+    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION
 fi
 
 # Force immediate tmux status refresh after session creation

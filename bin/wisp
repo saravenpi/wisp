@@ -1,10 +1,6 @@
 
 #!/usr/bin/env bash
 
-# Source shared utilities
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../scripts/wisp-utils.sh"
-
 WORK_LOG="$HOME/.wisp.yml"
 DEFAULT_DURATION=25
 init_work_log() {
@@ -484,7 +480,28 @@ show_stats() {
 }
 
 get_session_name() {
-    prompt_for_name "Session name (press Enter to skip)" "Session > " 40
+    local placeholder="Session name (press Enter to skip)"
+    local prompt="Session > "
+    local width="40"
+    local result=""
+
+    # Only try gum if we have a proper interactive terminal
+    if command -v gum >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
+        # Try gum first, with proper error handling for tmux environments
+        result=$(gum input --no-show-help --placeholder "$placeholder" --prompt "$prompt" --width "$width" 2>/dev/null)
+        local exit_code=$?
+
+        # If gum succeeds, return the result
+        if [ $exit_code -eq 0 ]; then
+            echo "$result"
+            return 0
+        fi
+        # If gum fails, fall through to read fallback
+    fi
+
+    # Fallback to standard read for tmux environments or when gum is unavailable
+    read -p "$prompt" result
+    echo "$result"
 }
 
 main() {
@@ -508,10 +525,7 @@ main() {
             if [ -n "$1" ]; then
                 session_name="$*"
             else
-                if ! session_name=$(get_session_name); then
-                    echo "❌ Cancelled"
-                    return 1
-                fi
+                session_name=$(get_session_name)
             fi
 
             log_session_start "work" "$duration" "$session_name"
@@ -549,10 +563,7 @@ main() {
                 if [ -n "$1" ]; then
                     session_name="$*"
                 else
-                    if ! session_name=$(get_session_name); then
-                        echo "❌ Cancelled"
-                        return 1
-                    fi
+                    session_name=$(get_session_name)
                 fi
 
                 log_session_start "work" "$duration" "$session_name"

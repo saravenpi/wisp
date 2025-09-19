@@ -18,17 +18,15 @@ WISP_CMD=$(get_wisp_cmd)
 echo "📝 Name Current Session"
 echo
 
-if name=$(prompt_for_name "Session name" "Session > " 40); then
-    if [ -n "$name" ]; then
-        echo
-        echo "Naming session: $name"
-        WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD name "$name"
-        echo "✅ Session named successfully!"
-    else
-        echo "❌ No name provided"
-    fi
+name=$(prompt_for_name "Session name" "Session > " 40)
+
+if [ -n "$name" ]; then
+    echo
+    echo "Naming session: $name"
+    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD name "$name"
+    echo "✅ Session named successfully!"
 else
-    echo "❌ Cancelled"
+    echo "❌ No name provided"
 fi
 
 echo

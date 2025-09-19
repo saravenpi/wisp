@@ -15,28 +15,17 @@ get_wisp_cmd() {
 
 WISP_CMD=$(get_wisp_cmd)
 
-echo "🕒 Custom Session Setup"
-echo
-
 if ! DURATION=$(prompt_for_name "Duration in minutes" "Duration > " 30); then
-    echo "❌ Cancelled"
     exit 0
 fi
 
 if [ -n "$DURATION" ]; then
-    echo
     if SESSION_NAME=$(prompt_for_name "Session name (press Enter to skip)" "Session > " 40); then
-        echo
-
         if [ -n "$SESSION_NAME" ]; then
-            echo "Starting ${DURATION}min session: $SESSION_NAME"
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
         else
-            echo "Starting ${DURATION}min session"
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
         fi
-
-        echo "✅ Session started successfully!"
 
         # Force immediate tmux status refresh after session creation
         if [ -n "$TMUX" ]; then
@@ -45,12 +34,6 @@ if [ -n "$DURATION" ]; then
             tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
         fi
     else
-        echo "❌ Cancelled"
         exit 0
     fi
-else
-    echo "❌ No duration provided"
 fi
-
-echo
-read -p "Press Enter to close..."

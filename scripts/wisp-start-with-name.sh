@@ -23,7 +23,6 @@ if SESSION_NAME=$(prompt_for_name "Session name (press Enter to skip)" "Session 
         WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION
     fi
 else
-    echo "❌ Cancelled"
     exit 0
 fi
 

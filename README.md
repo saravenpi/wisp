@@ -11,7 +11,7 @@ A lightweight, customizable Pomodoro timer with tmux integration. WISP helps you
 - 🔧 **Tmux Integration**: Seamless status bar integration with session names and configurable colors
 - ⚡ **Lightweight**: Pure bash implementation with minimal dependencies
 - 🎯 **Focus States**: Track running, paused, completed, and cancelled sessions
-- 📱 **Interactive Menus**: Beautiful tmux popups with gum integration
+- 📱 **Interactive Menus**: Beautiful tmux popups with simple input prompts
 
 ## 🚀 Quick Start
 
@@ -131,7 +131,7 @@ WISP supports naming your work sessions for better organization and tracking.
 3. **Through tmux Menu** (prefix + M)
    - Start new sessions with name prompts
    - Rename existing active sessions
-   - Uses gum for beautiful input dialogs (if available)
+   - Uses simple shell prompts for reliable input
 
 ### Session Name Display
 

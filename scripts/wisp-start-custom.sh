@@ -19,15 +19,16 @@ get_wisp_cmd() {
 
 WISP_CMD=$(get_wisp_cmd)
 
-# Check if gum is available and we're in tmux
-if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
+# Use tmux popup with simple read for input
+if [ -n "$TMUX" ]; then
     # Use tmux popup to get the duration, write to temp file
     temp_file="/tmp/wisp-duration-$$"
 
-    # Run popup to get duration - minimal height
-    if tmux popup -w 40 -h 1 -T " Duration " -E "
-        duration=\$(gum input --no-show-help --placeholder 'Duration in minutes' --prompt 'Duration > ')
-        if [ \$? -eq 0 ]; then
+    # Run popup to get duration
+    if tmux popup -w 40 -h 3 -T " Duration " -E "
+        printf 'Duration > '
+        read -r duration
+        if [ -n \"\$duration\" ]; then
             echo \"\$duration\" > '$temp_file'
         fi
     "; then
@@ -37,14 +38,13 @@ if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
             rm -f "$temp_file"
 
             if [ -n "$DURATION" ]; then
-                # Get session name with another compact popup
+                # Get session name with another popup
                 temp_file2="/tmp/wisp-session-$$"
 
-                if tmux popup -w 50 -h 1 -T " Session Name " -E "
-                    name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ')
-                    if [ \$? -eq 0 ]; then
-                        echo \"\$name\" > '$temp_file2'
-                    fi
+                if tmux popup -w 50 -h 3 -T " Session Name " -E "
+                    printf 'Session > '
+                    read -r name
+                    echo \"\$name\" > '$temp_file2'
                 "; then
                     if [ -f "$temp_file2" ]; then
                         SESSION_NAME=$(head -1 "$temp_file2")
@@ -72,11 +72,11 @@ if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
     fi
 else
     # Fallback to standard read
-    printf "Duration > " >&2
-    IFS= read -r DURATION
+    printf "Duration > "
+    read -r DURATION
     if [ -n "$DURATION" ]; then
-        printf "Session > " >&2
-        IFS= read -r SESSION_NAME
+        printf "Session > "
+        read -r SESSION_NAME
         if [ -n "$SESSION_NAME" ]; then
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
         else
@@ -85,9 +85,9 @@ else
 
         # Force immediate tmux status refresh after session creation
         if [ -n "$TMUX" ]; then
-            sleep 0.2  # Slightly longer pause to ensure session is fully created
+            sleep 0.2
             tmux refresh-client -S >/dev/null 2>&1
-            tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
+            tmux refresh-client >/dev/null 2>&1
         fi
     fi
 fi

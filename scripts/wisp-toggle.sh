@@ -28,19 +28,15 @@ if [ -f "$WORK_LOG" ] && (grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null 
     WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD toggle
 else
     # No active session - ask for session name using popup, then start outside
-    if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
+    if [ -n "$TMUX" ]; then
         # Use tmux popup to get the session name, write to temp file
         temp_file="/tmp/wisp-session-name-$$"
 
-        # Run popup to get session name - popup closes immediately after input
-        if tmux popup -w 50 -h 1 -T " Start Session " -E "
-            name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ')
-            exit_code=\$?
-            if [ \$exit_code -eq 0 ]; then
-                # Always write to temp file, even if empty - this signals success
-                echo \"\$name\" > '$temp_file'
-            fi
-            exit \$exit_code
+        # Run popup to get session name
+        if tmux popup -w 50 -h 3 -T " Start Session " -E "
+            printf 'Session > '
+            read -r name
+            echo \"\$name\" > '$temp_file'
         "; then
             # Popup succeeded, check if we have a result
             if [ -f "$temp_file" ]; then

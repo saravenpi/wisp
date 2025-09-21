@@ -536,12 +536,16 @@ main() {
             fi
 
             local session_name=""
-            if [ -n "$1" ]; then
+            if [ $# -gt 0 ]; then
                 session_name="$*"
             else
-                if ! session_name=$(get_session_name); then
-                    return 1
+                # Only prompt for session name if running interactively
+                if [ -t 0 ] && [ -t 1 ]; then
+                    if ! session_name=$(get_session_name); then
+                        return 1
+                    fi
                 fi
+                # If not interactive, session_name remains empty (which is fine)
             fi
 
             log_session_start "work" "$duration" "$session_name"
@@ -571,12 +575,16 @@ main() {
                 fi
 
                 local session_name=""
-                if [ -n "$1" ]; then
+                if [ $# -gt 0 ]; then
                     session_name="$*"
                 else
-                    if ! session_name=$(get_session_name); then
-                        return 1
+                    # Only prompt for session name if running interactively
+                    if [ -t 0 ] && [ -t 1 ]; then
+                        if ! session_name=$(get_session_name); then
+                            return 1
+                        fi
                     fi
+                    # If not interactive, session_name remains empty (which is fine)
                 fi
 
                 log_session_start "work" "$duration" "$session_name"

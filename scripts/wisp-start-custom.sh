@@ -19,38 +19,56 @@ get_wisp_cmd() {
 
 WISP_CMD=$(get_wisp_cmd)
 
-# Check if gum is available
-if command -v gum >/dev/null 2>&1; then
-    # Get the duration using gum input - the tmux popup handles escape properly
-    DURATION=$(gum input --no-show-help --placeholder "Duration in minutes" --prompt "Duration > ")
+# Check if gum is available and we're in tmux
+if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
+    # Use tmux popup to get the duration, write to temp file
+    temp_file="/tmp/wisp-duration-$$"
 
-    # Check if gum was cancelled (escape key pressed)
-    if [ $? -ne 0 ]; then
-        exit 0
-    fi
-
-    if [ -n "$DURATION" ]; then
-        # Get the session name using gum input
-        SESSION_NAME=$(gum input --no-show-help --placeholder "Session name (press Enter to skip)" --prompt "Session > ")
-
-        # Check if gum was cancelled (escape key pressed)
-        if [ $? -eq 0 ]; then
-            if [ -n "$SESSION_NAME" ]; then
-                WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
-            else
-                WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
-            fi
-
-            # Force immediate tmux status refresh after session creation
-            if [ -n "$TMUX" ]; then
-                sleep 0.2  # Slightly longer pause to ensure session is fully created
-                tmux refresh-client -S >/dev/null 2>&1
-                tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
-            fi
-        else
-            # User pressed escape - exit gracefully
-            exit 0
+    # Run popup to get duration - compact height
+    if tmux popup -w 40 -h 3 -T " Duration " -E "
+        duration=\$(gum input --no-show-help --placeholder 'Duration in minutes' --prompt 'Duration > ')
+        if [ \$? -eq 0 ]; then
+            echo \"\$duration\" > '$temp_file'
         fi
+    "; then
+        # Popup succeeded, check if we have a duration
+        if [ -f "$temp_file" ]; then
+            DURATION=$(head -1 "$temp_file")
+            rm -f "$temp_file"
+
+            if [ -n "$DURATION" ]; then
+                # Get session name with another compact popup
+                temp_file2="/tmp/wisp-session-$$"
+
+                if tmux popup -w 50 -h 3 -T " Session Name " -E "
+                    name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ')
+                    if [ \$? -eq 0 ]; then
+                        echo \"\$name\" > '$temp_file2'
+                    fi
+                "; then
+                    if [ -f "$temp_file2" ]; then
+                        SESSION_NAME=$(head -1 "$temp_file2")
+                        rm -f "$temp_file2"
+
+                        # Start the session with duration and optional name
+                        if [ -n "$SESSION_NAME" ]; then
+                            WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
+                        else
+                            WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
+                        fi
+
+                        # Force immediate tmux status refresh after session creation
+                        sleep 0.2
+                        tmux refresh-client -S >/dev/null 2>&1
+                        tmux refresh-client >/dev/null 2>&1
+                    fi
+                else
+                    rm -f "$temp_file2"
+                fi
+            fi
+        fi
+    else
+        rm -f "$temp_file"
     fi
 else
     # Fallback to standard read

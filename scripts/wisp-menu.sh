@@ -81,7 +81,7 @@ else
     tmux display-menu -x C -y C -T " Wisp " \
         "Start 25min Session" 1 "display-popup -x C -y C -w 50 -h 3 -E 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/wisp-start-with-name.sh 25'" \
         "Start 45min Session" 2 "display-popup -x C -y C -w 50 -h 3 -E 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/wisp-start-with-name.sh 45'" \
-        "Start Custom Session" s "display-popup -x C -y C -w 50 -h 5 -E 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/wisp-start-custom.sh'" \
+        "Start Custom Session" s "display-popup -x C -y C -w 50 -h 4 -E 'WISP_NOTIFICATIONS=\"\${WISP_NOTIFICATIONS:-true}\" $CURRENT_DIR/wisp-start-custom.sh'" \
         "" \
         "Show History" h "display-popup -x C -y C -w 90 -h 25 -S -E '$CURRENT_DIR/../bin/wisp history; echo; echo \"Press any key to close...\"; read -n 1'" \
         "Show Stats" t "display-popup -x C -y C -w 70 -h 20 -S -E '$CURRENT_DIR/../bin/wisp stats; echo; echo \"Press any key to close...\"; read -n 1'"

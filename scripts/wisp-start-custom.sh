@@ -45,6 +45,7 @@ else
     printf "Duration > "
     read -r DURATION
     if [ -n "$DURATION" ]; then
+        clear
         printf "Session > "
         read -r SESSION_NAME
         # Always pass session name (empty is allowed)

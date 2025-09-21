@@ -24,8 +24,8 @@ if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
     # Use tmux popup to get the duration, write to temp file
     temp_file="/tmp/wisp-duration-$$"
 
-    # Run popup to get duration - compact height
-    if tmux popup -w 40 -h 3 -T " Duration " -E "
+    # Run popup to get duration - minimal height
+    if tmux popup -w 40 -h 1 -T " Duration " -E "
         duration=\$(gum input --no-show-help --placeholder 'Duration in minutes' --prompt 'Duration > ')
         if [ \$? -eq 0 ]; then
             echo \"\$duration\" > '$temp_file'
@@ -40,7 +40,7 @@ if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
                 # Get session name with another compact popup
                 temp_file2="/tmp/wisp-session-$$"
 
-                if tmux popup -w 50 -h 3 -T " Session Name " -E "
+                if tmux popup -w 50 -h 1 -T " Session Name " -E "
                     name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ')
                     if [ \$? -eq 0 ]; then
                         echo \"\$name\" > '$temp_file2'

@@ -34,13 +34,11 @@ else
 
         # Run popup to get session name
         if tmux popup -w 50 -h 3 -T " Start Session " -E "
-            printf 'Session (Enter=empty, Esc=cancel) > '
-            # Enable raw mode to capture escape sequences
+            printf 'Session > '
             if read -r name; then
                 echo \"\$name\" > '$temp_file'
                 exit 0
             else
-                # Read was interrupted (Ctrl+C, Esc, etc.)
                 exit 1
             fi
         "; then

@@ -26,6 +26,7 @@ if [ -n "$TMUX" ]; then
     read -r DURATION
 
     if [ -n "$DURATION" ]; then
+        clear
         printf "Session > "
         read -r SESSION_NAME
 

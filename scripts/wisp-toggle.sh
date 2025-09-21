@@ -28,7 +28,8 @@ else
         # Use tmux popup with gum input directly - like sertren does
         tmux popup -w 50 -h 3 -T " Start Session " -E "
             name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ')
-            if [ \$? -eq 0 ]; then
+            exit_code=\$?
+            if [ \$exit_code -eq 0 ]; then
                 if [ -n \"\$name\" ]; then
                     WISP_NOTIFICATIONS=\"$WISP_NOTIFICATIONS\" \"$WISP_CMD\" start 25 \"\$name\"
                 else

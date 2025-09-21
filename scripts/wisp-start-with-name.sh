@@ -21,14 +21,11 @@ WISP_CMD=$(get_wisp_cmd)
 DURATION="${1:-25}"
 
 # Use simple shell input
-printf "Session > "
+printf "Session (Enter=empty) > "
 read -r SESSION_NAME
 
-if [ -n "$SESSION_NAME" ]; then
-    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION "$SESSION_NAME"
-else
-    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION
-fi
+# Always pass session name (empty is allowed)
+WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start $DURATION "$SESSION_NAME"
 
 # Force immediate tmux status refresh after session creation
 if [ -n "$TMUX" ]; then

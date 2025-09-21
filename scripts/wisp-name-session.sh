@@ -20,8 +20,11 @@ get_wisp_cmd() {
 WISP_CMD=$(get_wisp_cmd)
 
 # Use simple shell input
-printf "Session > "
+printf "Session name > "
 read -r name
 if [ -n "$name" ]; then
     WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD name "$name"
+else
+    echo "Session name cannot be empty for renaming"
+    exit 1
 fi

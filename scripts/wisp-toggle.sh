@@ -34,9 +34,15 @@ else
 
         # Run popup to get session name
         if tmux popup -w 50 -h 3 -T " Start Session " -E "
-            printf 'Session > '
-            read -r name
-            echo \"\$name\" > '$temp_file'
+            printf 'Session (Enter=empty, Esc=cancel) > '
+            # Enable raw mode to capture escape sequences
+            if read -r name; then
+                echo \"\$name\" > '$temp_file'
+                exit 0
+            else
+                # Read was interrupted (Ctrl+C, Esc, etc.)
+                exit 1
+            fi
         "; then
             # Popup succeeded, check if we have a result
             if [ -f "$temp_file" ]; then
@@ -44,13 +50,8 @@ else
                 session_name=$(head -1 "$temp_file")
                 rm -f "$temp_file"
 
-                # Start the session outside the popup - with or without name
-                if [ -n "$session_name" ]; then
-                    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start 25 "$session_name"
-                else
-                    # Pass an empty string explicitly to avoid prompting
-                    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start 25 ""
-                fi
+                # Start the session outside the popup - always allow empty names
+                WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start 25 "$session_name"
             fi
         else
             # Popup was cancelled, clean up temp file

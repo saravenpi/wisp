@@ -17,17 +17,29 @@ prompt_for_name() {
         local popup_width=$((width + 5))
         local popup_height=3
         local title=" Wisp Input "
+        local temp_file="/tmp/wisp-input-$$"
 
-        # Run gum input inside tmux popup - tmux popup handles escape key properly
-        # Using the same pattern as sertren for reliable escape key handling
-        if result=$(tmux popup -w "$popup_width" -h "$popup_height" -T "$title" -E "
-            gum input --no-show-help --placeholder '$placeholder' --prompt '$prompt'
-        "); then
-            # Popup completed successfully and we have a result
-            echo "$result"
-            return 0
+        # Run gum input inside tmux popup using temporary file approach like sertren
+        if tmux popup -w "$popup_width" -h "$popup_height" -T "$title" -E "
+            result=\$(gum input --no-show-help --placeholder '$placeholder' --prompt '$prompt')
+            if [ \$? -eq 0 ]; then
+                echo \"\$result\" > '$temp_file'
+            fi
+        "; then
+            # Popup completed successfully, check if we have a result
+            if [ -f "$temp_file" ]; then
+                result=$(cat "$temp_file")
+                rm -f "$temp_file"
+                echo "$result"
+                return 0
+            else
+                # Popup was cancelled or no input provided
+                rm -f "$temp_file"
+                return 1
+            fi
         else
             # Popup was cancelled (escape key pressed)
+            rm -f "$temp_file"
             return 1
         fi
     fi

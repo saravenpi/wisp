@@ -23,7 +23,21 @@ WORK_LOG="$HOME/.wisp.yml"
 if [ -f "$WORK_LOG" ] && (grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null || grep -q "status: paused" "$WORK_LOG" 2>/dev/null); then
     WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD toggle
 else
-    # No active session - start a new 25-minute session without asking for a name
-    # Use the menu (prefix + W) if you want to specify a custom name
-    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start 25
+    # No active session - ask for session name using sertren approach
+    if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
+        # Use tmux popup with gum input directly - like sertren does
+        tmux popup -w 50 -h 3 -T " Start Session " -E "
+            name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ')
+            if [ \$? -eq 0 ]; then
+                if [ -n \"\$name\" ]; then
+                    WISP_NOTIFICATIONS=\"$WISP_NOTIFICATIONS\" \"$WISP_CMD\" start 25 \"\$name\"
+                else
+                    WISP_NOTIFICATIONS=\"$WISP_NOTIFICATIONS\" \"$WISP_CMD\" start 25
+                fi
+            fi
+        "
+    else
+        # Fallback - just start without name
+        WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start 25
+    fi
 fi

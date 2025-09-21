@@ -23,10 +23,7 @@ WORK_LOG="$HOME/.wisp.yml"
 if [ -f "$WORK_LOG" ] && (grep -q "status: in_progress" "$WORK_LOG" 2>/dev/null || grep -q "status: paused" "$WORK_LOG" 2>/dev/null); then
     WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD toggle
 else
-    if [ -n "$TMUX" ]; then
-        CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-        tmux display-popup -x C -y C -w 50 -h 3 -E "$CURRENT_DIR/wisp-start-with-name.sh 25"
-    else
-        WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD toggle
-    fi
+    # No active session - start a new 25-minute session without asking for a name
+    # Use the menu (prefix + W) if you want to specify a custom name
+    WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start 25
 fi

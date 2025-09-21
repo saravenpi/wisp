@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Get notification setting from tmux if available, otherwise default to true
+if [ -n "$TMUX" ]; then
+    WISP_NOTIFICATIONS=$(tmux show-option -gqv @wisp_notifications)
+fi
+WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}"
+export WISP_NOTIFICATIONS
+
 if command -v wisp >/dev/null 2>&1; then
     WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" wisp stop
 elif [ -x "$HOME/.local/bin/wisp" ]; then

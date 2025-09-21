@@ -7,6 +7,13 @@ if [ -z "$TMUX" ]; then
     exit 1
 fi
 
+# Get notification setting from tmux if available, otherwise default to true
+if [ -n "$TMUX" ]; then
+    WISP_NOTIFICATIONS=$(tmux show-option -gqv @wisp_notifications)
+fi
+WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}"
+export WISP_NOTIFICATIONS
+
 has_active_session=false
 session_status=""
 

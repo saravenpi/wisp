@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Source shared utilities
-source "$(dirname "${BASH_SOURCE[0]}")/wisp-utils.sh"
-
 # Get notification setting from tmux if available, otherwise default to true
 if [ -n "$TMUX" ]; then
     WISP_NOTIFICATIONS=$(tmux show-option -gqv @wisp_notifications)
@@ -22,12 +19,46 @@ get_wisp_cmd() {
 
 WISP_CMD=$(get_wisp_cmd)
 
-if ! DURATION=$(prompt_for_name "Duration in minutes" "Duration > " 30); then
-    exit 0
-fi
+# Check if gum is available
+if command -v gum >/dev/null 2>&1; then
+    # Get the duration using gum input - the tmux popup handles escape properly
+    DURATION=$(gum input --no-show-help --placeholder "Duration in minutes" --prompt "Duration > ")
 
-if [ -n "$DURATION" ]; then
-    if SESSION_NAME=$(prompt_for_name "Session name (press Enter to skip)" "Session > " 40); then
+    # Check if gum was cancelled (escape key pressed)
+    if [ $? -ne 0 ]; then
+        exit 0
+    fi
+
+    if [ -n "$DURATION" ]; then
+        # Get the session name using gum input
+        SESSION_NAME=$(gum input --no-show-help --placeholder "Session name (press Enter to skip)" --prompt "Session > ")
+
+        # Check if gum was cancelled (escape key pressed)
+        if [ $? -eq 0 ]; then
+            if [ -n "$SESSION_NAME" ]; then
+                WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
+            else
+                WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION"
+            fi
+
+            # Force immediate tmux status refresh after session creation
+            if [ -n "$TMUX" ]; then
+                sleep 0.2  # Slightly longer pause to ensure session is fully created
+                tmux refresh-client -S >/dev/null 2>&1
+                tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
+            fi
+        else
+            # User pressed escape - exit gracefully
+            exit 0
+        fi
+    fi
+else
+    # Fallback to standard read
+    printf "Duration > " >&2
+    IFS= read -r DURATION
+    if [ -n "$DURATION" ]; then
+        printf "Session > " >&2
+        IFS= read -r SESSION_NAME
         if [ -n "$SESSION_NAME" ]; then
             WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start "$DURATION" "$SESSION_NAME"
         else
@@ -40,7 +71,5 @@ if [ -n "$DURATION" ]; then
             tmux refresh-client -S >/dev/null 2>&1
             tmux refresh-client >/dev/null 2>&1  # Double refresh for immediate update
         fi
-    else
-        exit 0
     fi
 fi

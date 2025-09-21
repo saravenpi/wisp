@@ -32,15 +32,18 @@ else
         if tmux popup -w 50 -h 3 -T " Start Session " -E "
             name=\$(gum input --no-show-help --placeholder 'Session name (press Enter to skip)' --prompt 'Session > ')
             if [ \$? -eq 0 ]; then
+                # Always write to temp file, even if empty - this signals success
                 echo \"\$name\" > '$temp_file'
+                echo \"SUCCESS\" >> '$temp_file'
             fi
         "; then
             # Popup succeeded, check if we have a result
-            if [ -f "$temp_file" ]; then
-                session_name=$(cat "$temp_file")
+            if [ -f "$temp_file" ] && grep -q "SUCCESS" "$temp_file"; then
+                # Get the session name (first line of temp file)
+                session_name=$(head -1 "$temp_file")
                 rm -f "$temp_file"
 
-                # Start the session outside the popup
+                # Start the session outside the popup - with or without name
                 if [ -n "$session_name" ]; then
                     WISP_NOTIFICATIONS="${WISP_NOTIFICATIONS:-true}" $WISP_CMD start 25 "$session_name"
                 else

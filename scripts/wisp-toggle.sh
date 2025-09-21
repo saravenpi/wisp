@@ -26,7 +26,7 @@ else
     # No active session - ask for session name using popup, then start outside
     if [ -n "$TMUX" ] && command -v gum >/dev/null 2>&1; then
         # Use tmux popup to get the session name, write to temp file
-        local temp_file="/tmp/wisp-session-name-$$"
+        temp_file="/tmp/wisp-session-name-$$"
 
         # Run popup to get session name - popup closes immediately after input
         if tmux popup -w 50 -h 3 -T " Start Session " -E "
@@ -34,11 +34,10 @@ else
             if [ \$? -eq 0 ]; then
                 # Always write to temp file, even if empty - this signals success
                 echo \"\$name\" > '$temp_file'
-                echo \"SUCCESS\" >> '$temp_file'
             fi
         "; then
             # Popup succeeded, check if we have a result
-            if [ -f "$temp_file" ] && grep -q "SUCCESS" "$temp_file"; then
+            if [ -f "$temp_file" ]; then
                 # Get the session name (first line of temp file)
                 session_name=$(head -1 "$temp_file")
                 rm -f "$temp_file"

@@ -20,7 +20,7 @@ get_wisp_cmd() {
 WISP_CMD=$(get_wisp_cmd)
 DURATION="${1:-25}"
 
-# Use basic shell input for reliability in tmux popups
+# Use simple shell input
 printf "Session > "
 read -r SESSION_NAME
 
